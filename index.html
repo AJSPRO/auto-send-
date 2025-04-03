@@ -15,6 +15,10 @@
         <form id="sendForm">
             <textarea id="receiverAddresses" placeholder="Receiver Addresses (comma separated)" required></textarea><br>
             <input type="number" id="amount" placeholder="Amount" required><br>
+            <select id="tokenSelect">
+                <option value="0xTokenAddress1">Token 1</option>
+                <option value="0xTokenAddress2">Token 2</option>
+            </select><br>
             <button type="submit">Send Tokens</button>
         </form>
     </div>
@@ -27,38 +31,59 @@
 
         let userWallet;
 
+        // Token ABI for ERC20 transfers
+        const tokenABIs = {
+            "ERC20": [
+                "function transfer(address recipient, uint256 amount) public returns (bool)"
+            ]
+        };
+
+        // Checking if MetaMask is available
+        if (typeof window.ethereum !== 'undefined') {
+            console.log("MetaMask is installed!");
+        } else {
+            alert("Please install MetaMask!");
+        }
+
+        // Connecting MetaMask wallet
         connectWalletBtn.onclick = async () => {
             if (window.ethereum) {
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send('eth_requestAccounts', []);
-                userWallet = provider.getSigner();
-                const address = await userWallet.getAddress();
-                walletAddress.innerText = address;
-                walletInfo.style.display = 'block';
-                connectWalletBtn.style.display = 'none';
+                try {
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send('eth_requestAccounts', []);
+                    userWallet = provider.getSigner();
+                    const address = await userWallet.getAddress();
+                    walletAddress.innerText = address;
+                    walletInfo.style.display = 'block';
+                    connectWalletBtn.style.display = 'none';
+                } catch (error) {
+                    alert("Error connecting to wallet: " + error.message);
+                }
             } else {
                 alert("Please install MetaMask!");
             }
         };
 
+        // Send Token function
         sendForm.onsubmit = async (e) => {
             e.preventDefault();
+
             const receiverAddresses = document.getElementById('receiverAddresses').value.split(',').map(address => address.trim());
             const amount = document.getElementById('amount').value;
+            const selectedTokenAddress = document.getElementById('tokenSelect').value;
 
             if (receiverAddresses.length === 0 || amount <= 0) {
                 alert("Please provide valid receiver addresses and amount!");
                 return;
             }
 
+            const tokenContract = new ethers.Contract(selectedTokenAddress, tokenABIs.ERC20, userWallet);
+
             for (let i = 0; i < receiverAddresses.length; i++) {
                 const receiverAddress = receiverAddresses[i];
 
                 try {
-                    const tx = await userWallet.sendTransaction({
-                        to: receiverAddress,
-                        value: ethers.utils.parseEther(amount),
-                    });
+                    const tx = await tokenContract.transfer(receiverAddress, ethers.utils.parseUnits(amount, 18)); // Assuming 18 decimals for the token
                     alert(Transaction successful to ${receiverAddress}: ${tx.hash});
                 } catch (error) {
                     alert(Transaction failed to ${receiverAddress}: ${error.message});
