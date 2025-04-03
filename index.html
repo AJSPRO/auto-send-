@@ -3,26 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Send Token</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.4.0/dist/ethers.umd.min.js"></script>
+    <title>Send Tokens</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: block;
+            text-align: left;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 16px;
+            color: green;
+        }
+    </style>
 </head>
 <body>
-    <h1>Auto Send Token</h1>
-    <button id="connectWalletBtn">Connect Wallet</button>
 
-    <div id="walletInfo" style="display:none;">
-        <p>Wallet Address: <span id="walletAddress"></span></p>
-        <form id="sendForm">
-            <input type="text" id="receiverAddress" placeholder="Receiver Address" required><br>
-            <input type="number" id="amount" placeholder="Amount" required><br>
-            <button type="submit">Send Token</button>
-        </form>
-    </div>
+<div class="container">
+    <h1>Send Tokens</h1>
 
-    <script>
-        const connectWalletBtn = document.getElementById('connectWalletBtn');
-        const walletInfo = document.getElementById('walletInfo');
-        const walletAddress = document.getElementById('walletAddress');
+    <form id="sendForm">
+        <div class="form-group">
+            <label for="privateKey">Private Key:</label>
+            <input type="text" id="privateKey" name="privateKey" required>
+        </div>
+
+        <div class="form-group">
+            <label for="contractAddress">Contract Address:</label>
+            <input type="text" id="contractAddress" name="contractAddress" required>
+        </div>
+
+        <div class="form-group">
+            <label for="receivers">Receiver Addresses (comma separated):</label>
+            <input type="text" id="receivers" name="receivers" required>
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount to Send:</label>
+            <input type="number" id="amount" name="amount" required>
+        </div>
+
+        <input type="submit" value="Send Tokens">
+    </form>
+
+    <div id="message" class="message"></div>
+</div>
+
+<script>
+    document.getElementById("sendForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const privateKey = document.getElementById("privateKey").value;
+        const contractAddress = document.getElementById("contractAddress").value;
+        const receivers = document.getElementById("receivers").value.split(",").map(addr => addr.trim());
+        const amount = document.getElementById("amount").value;
+
+        fetch("https://YOUR_VERCEL_URL/send-tokens", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                senderPrivateKey: privateKey,
+                contractAddress: contractAddress,
+                receivers: receivers,
+                amount: amount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("message").innerText = "Tokens sent successfully!";
+        })
+        .catch(error => {
+            document.getElementById("message").innerText = "Error: " + error.message;
+            document.getElementById("message").style.color = "red";
+        });
+    });
+</script>
+
+</body>
+</html>
         const sendForm = document.getElementById('sendForm');
 
         let userWallet;
