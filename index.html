@@ -60,16 +60,16 @@
             if (window.ethereum) {
                 try {
                     // Meminta akses ke akun MetaMask
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // Jika akses berhasil, akun pertama akan digunakan
+                    const userAddress = accounts[0];
 
-                    // Membuat provider dan signer
+                    // Menggunakan ethers.js untuk terhubung ke provider dan signer
                     const provider = new ethers.BrowserProvider(window.ethereum);
                     const signer = provider.getSigner();
 
-                    // Mendapatkan alamat wallet yang terhubung
-                    const userAddress = await signer.getAddress();
-
-                    // Menampilkan alamat wallet di layar
+                    // Menampilkan alamat wallet yang terhubung
                     document.getElementById("walletAddress").innerText = Connected Wallet: ${userAddress};
                     
                     console.log("Connected wallet address:", userAddress);
@@ -82,10 +82,6 @@
             }
         });
     </script>
-
-</body>
-</html>
-</script>
 
 </body>
 </html>
